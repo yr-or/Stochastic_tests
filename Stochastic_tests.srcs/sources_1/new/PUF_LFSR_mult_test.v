@@ -46,7 +46,7 @@ module PUF_LFSR_mult_test(
         .clk                (clk),
         .reset              (reset),
         .enable             (enable),
-        .prob               (prob1),
+        .prob               (prob2),
         .stoch_num          (ro_stoch2)
     );
 
