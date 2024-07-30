@@ -1,67 +1,112 @@
-// TOp level module for testing multiplier on hardware
+// Test Galois LFSR SNG with bipoalr multiplier
 
 module Mult_test(
     input clk
     );
 
-    // Wires
-    wire SNG_a_out;
-    wire SNG_b_out;
-    wire mult_out;
+    // wires
     wire reset;
-    wire stb_done;
-    wire [7:0] prod;
-    // Regs
-    reg [7:0] num1 = 8'd192;         // 0.5 bipolar
-    reg [7:0] num2 = 8'd96;          // -0.25 bipolar
-    // Result should = 0.5*-0.25=-0.125 = 112 Int
+    wire enable;
+    wire [7:0] prob1;
+    wire [7:0] prob2;
+
+    // RO PUF wires
+    wire ro_stoch1;
+    wire ro_stoch2;
+    wire ro_mult_out;
+    wire [7:0] ro_mult_bin;
+    wire done_stb_ro;
+
+    // LFSR SNG wire
+    wire lfsr_stoch1;
+    wire lfsr_stoch2;
+    wire lfsr_mult_out;
+    wire [7:0] lfsr_mult_bin;
+    wire done_stb_lfsr;
 
     // VIO
-    vio_0 vio(
+    vio_1 vio(
         .clk                (clk),
-        .probe_out0         (reset)
+        .probe_out0         (reset),
+        .probe_out1         (enable),
+        .probe_out2         (prob1),
+        .probe_out3         (prob2)
     );
 
-    // SNGs
-    StochNumGen SNG_a(
+    // RO_SNG 1
+    SNG_RO ro_sng1(
+        .clk                (clk),
+        .reset              (reset),
+        .enable             (enable),
+        .prob               (prob1),
+        .stoch_num          (ro_stoch1)
+    );
+
+    // RO_SNG 2
+    SNG_RO ro_sng2(
+        .clk                (clk),
+        .reset              (reset),
+        .enable             (enable),
+        .prob               (prob2),
+        .stoch_num          (ro_stoch2)
+    );
+
+    // Mult 1
+    Mult_bipolar mu1(
+        .stoch_num1         (ro_stoch1),
+        .stoch_num2         (ro_stoch2),
+        .stoch_res          (ro_mult_out)
+    );
+
+    // STB RO PUF
+    StochToBin stb1(
+        .clk                (clk),
+        .reset              (reset),
+        .bit_stream         (ro_mult_out),
+        .bin_number         (ro_mult_bin),
+        .done               (done_stb_ro)
+    );
+
+    // LFSR SNG 1
+    StochNumGen lfsr_sng1(
         .clk                (clk),
         .reset              (reset),
         .seed               (8'd84),
-        .prob               (num1),
-        .stoch_num          (SNG_a_out)
+        .prob               (prob1),
+        .stoch_num          (lfsr_stoch1)
     );
-    StochNumGen SNG_b(
+    StochNumGen lfsr_sng2(
         .clk                (clk),
         .reset              (reset),
         .seed               (8'd113),
-        .prob               (num2),
-        .stoch_num          (SNG_b_out)
+        .prob               (prob2),
+        .stoch_num          (lfsr_stoch2)
     );
 
-    // Multiplier
-    Mult_bipolar mu(
-        .stoch_num1         (SNG_a_out),
-        .stoch_num2         (SNG_b_out),
-        .stoch_res          (mult_out)
+    // lfsr mult
+    Mult_bipolar mu2(
+        .stoch_num1         (lfsr_stoch1),
+        .stoch_num2         (lfsr_stoch2),
+        .stoch_res          (lfsr_mult_out)
     );
 
-    // STB
-    StochToBin stb(
+    // stb lfsr
+    StochToBin stb2(
         .clk                (clk),
         .reset              (reset),
-        .bit_stream         (mult_out),
-        .bin_number         (prod),
-        .done               (stb_done)
+        .bit_stream         (lfsr_mult_out),
+        .bin_number         (lfsr_mult_bin),
+        .done               (done_stb_lfsr)
     );
 
     // ILA
-    ila_0 ila(
+    ila_1 ila(
         .clk                (clk),
-        .probe0             (prod),
-        .probe1             (stb_done),
-        .probe2             (reset),
-        .probe3             (SNG_a_out),
-        .probe4             (SNG_b_out)
+        .probe0             (reset),
+        .probe1             (done_stb_ro),
+        .probe2             (done_stb_lfsr),
+        .probe3             (ro_mult_bin),
+        .probe4             (lfsr_mult_bin)
     );
 
 endmodule

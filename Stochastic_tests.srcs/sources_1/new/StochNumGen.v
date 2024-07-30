@@ -14,7 +14,7 @@ module StochNumGen
     wire [7:0] rand_num;
 
     // LFSR
-    LFSR lfsr(
+    LFSR8_Galois lfsr(
         .clk                    (clk),
         .reset                  (reset),
         .seed                   (seed),
