@@ -9,7 +9,7 @@ from sklearn.metrics import r2_score
 import re
 
 ############### Read ILA data ################
-file1 = r"C:\Users\Rory\Documents\HDL\Stochastic_tests\Outputs\RO_PUF_mult_test1.csv"
+file1 = r"C:\Users\Rory\Documents\HDL\Stochastic_tests\Outputs\RO_PUF2_mult_test.csv"
 
 df1 = pd.read_csv(file1)
 

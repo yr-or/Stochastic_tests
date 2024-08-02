@@ -14,7 +14,7 @@ module SNG_RO
     wire [7:0] rand_num;
 
     // RO_RNG
-    RO_PUF_RNG rng(
+    RO_PUF_2 rng(
         .clk                    (clk),
         .reset                  (reset),
         .enable                 (enable),
